@@ -15,11 +15,23 @@ set res = 768
 echo "Cluster: $SLURM_CLUSTER_NAME"
 
 if (${SLURM_CLUSTER_NAME} == "c6") then
-  set BASE_DIR    = "/gpfs/f6/bil-coastal-gfdl/proj-shared/Joseph.Mouallem/"           # Sim/work directory - to be set
   set BASE_DIR    = "/gpfs/f6/bil-coastal-gfdl/scratch/Joseph.Mouallem/"           # Sim/work directory - to be set
   set BUILD_DIR = "~${USER}/shiemom_clean/SHiELD_build/"                  # Build directory - To be set
   set INPUT_DATA = "/gpfs/f6/bil-coastal-gfdl/proj-shared/gfdl_w/SHiELD_INPUT_DATA/"
 endif
+
+if (${SLURM_CLUSTER_NAME} == "c5") then
+set BASE_DIR    = "/gpfs/f5/gfdl_w/scratch/Joseph.Mouallem/"                     # Sim/work directory - to be set
+set BUILD_DIR = "~${USER}/shiemom_clean/SHiELD_build/"                  # Build directory - To be set
+set INPUT_DATA = "/gpfs/f5/gfdl_w/proj-shared/SHiELD_INPUT_DATA/"
+endif
+
+if (${SLURM_CLUSTER_NAME} == "stellar") then
+set BASE_DIR    = "/scratch/cimes/mouallem/shiemom_runs/test/"
+set BUILD_DIR = "~${USER}/for_jinbo/SHiELD_build/"
+set INPUT_DATA = "/scratch/cimes/mouallem/from_gaea/Coupled_SHiELD/INPUT/"
+endif
+
 
 unset echo
 source ${BUILD_DIR}/site/environment.intel.csh
@@ -46,7 +58,7 @@ set HYPT = "off"         # choices:  on, off  (controls hyperthreading)
 #set COMP = "debug"       # choices:  debug, repro, prod
 set NO_SEND = "no_send"  # choices:  send, no_send
 set EXE = "x"
-set HYPT = "on"         # choices:  on, off  (controls hyperthreading)
+set HYPT = "off"         # choices:  on, off  (controls hyperthreading)
 if ( ! $?COMP ) then
   set COMP = "repro"       # choices:  debug, repro, prod
 endif
@@ -64,6 +76,9 @@ set GFS  = ${INPUT_DATA}/GFS_STD_INPUT.20160311.tar
 set GRID = ${INPUT_DATA}/global.v201810/${CASE}/GRID/
 set FIX_bqx  = ${INPUT_DATA}/climo_data.v201807
 
+set Coupled_mosaic   = ${INPUT_DATA}/Coupled_SHiELD/GLOBAL/C768_025deg_test_orgfiles/
+set Coupled_ocean_ic = ${INPUT_DATA}/Coupled_SHiELD/GLOBAL/OM4_O25_IC/
+
 # sending file to gfdl
 set TIME_STAMP = ${USER}/Util/time_stamp.csh
 
@@ -78,7 +93,7 @@ set npz = "91"
 set layout_x = "40"
 set layout_y = "40"
 set io_layout = "1,1"
-set nthreads = "2"
+set nthreads = "1"
 
 # blocking factor used for threading and general physics performance
 set blocksize = "36"
@@ -249,6 +264,10 @@ tar xf ${GFS}
 # Grid and orography data
 cp -rf ${GRID}/* INPUT/.
 
+ln -sf ${Coupled_mosaic}/*mosaic* INPUT/
+ln -sf ${Coupled_mosaic}/grid_spec.nc INPUT/
+ln -sf ${Coupled_mosaic}/ocean_hgrid.nc INPUT/
+
 # build the date for curr_date from NAME
 
 #unset echo
@@ -283,10 +302,6 @@ cp INPUT/solarconstant_noaa_an.txt .
   cp $MOM_INPUT_DIR/MOM_* .
   cp $MOM_INPUT_DIR/SIS_* .
 
- ln -sf /gpfs/f6/bil-coastal-gfdl/proj-shared/Joseph.Mouallem/shiemom_pdata/GLOBAL/C768_025deg_test_orgfiles/*mosaic* INPUT/
- ln -sf /gpfs/f6/bil-coastal-gfdl/proj-shared/Joseph.Mouallem/shiemom_pdata/GLOBAL/C768_025deg_test_orgfiles/grid_spec.nc INPUT/
- ln -sf /gpfs/f6/bil-coastal-gfdl/proj-shared/Joseph.Mouallem/shiemom_pdata/GLOBAL/C768_025deg_test_orgfiles/ocean_hgrid.nc INPUT/
-
   ln -sf $MOM_INPUT_DIR/INPUT/All_edits.nc INPUT/
   ln -sf $MOM_INPUT_DIR/INPUT/MOM_channels_global_025 INPUT/
   ln -sf $MOM_INPUT_DIR/INPUT/layer_coord.nc INPUT/
@@ -305,9 +320,10 @@ cp INPUT/solarconstant_noaa_an.txt .
 # glorys
 ########
 
-ln -sf /gpfs/f6/bil-coastal-gfdl/proj-shared/Joseph.Mouallem/shiemom_pdata/GLOBAL/OM4_O25_IC/glorys_ic_OM4_025_fill_at_the_end.nc INPUT/
-ln -sf /gpfs/f6/bil-coastal-gfdl/proj-shared/Joseph.Mouallem/shiemom_pdata/GLOBAL/OM4_O25_IC/Glorys_lat_extended/glo12_rg_6h-i_20240926-00h_3D-so_lat_extended_filled.nc INPUT/glo12_rg_6h-i_20240926-00h_3D-so_hcst_R20241009.nc
-ln -sf /gpfs/f6/bil-coastal-gfdl/proj-shared/Joseph.Mouallem/shiemom_pdata/GLOBAL/OM4_O25_IC/Glorys_lat_extended/glo12_rg_6h-i_20240926-00h_3D-thetao_lat_extended_filled.nc INPUT/glo12_rg_6h-i_20240926-00h_3D-thetao_hcst_R20241009.nc
+ln -sf $Coupled_ocean_ic/glorys_ic_OM4_025_fill_at_the_end.nc INPUT/
+ln -sf $Coupled_ocean_ic/Glorys_lat_extended/glo12_rg_6h-i_20240926-00h_3D-so_lat_extended_filled.nc INPUT/glo12_rg_6h-i_20240926-00h_3D-so_hcst_R20241009.nc
+ln -sf $Coupled_ocean_ic/Glorys_lat_extended/glo12_rg_6h-i_20240926-00h_3D-thetao_lat_extended_filled.nc INPUT/glo12_rg_6h-i_20240926-00h_3D-thetao_hcst_R20241009.nc
+
 set input_filename = 'n' # for mom6/sis2
 
 cat >! MOM_override <<EOF
