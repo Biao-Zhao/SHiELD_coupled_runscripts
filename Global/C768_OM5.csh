@@ -29,7 +29,7 @@ endif
 if (${SLURM_CLUSTER_NAME} == "stellar") then
 set BASE_DIR    = "/scratch/cimes/mouallem/shiemom_runs/test/"
 set BUILD_DIR = "~${USER}/for_jinbo/SHiELD_build/"
-set INPUT_DATA = "/scratch/cimes/mouallem/from_gaea/Coupled_SHiELD/INPUT/"
+set INPUT_DATA = "/scratch/cimes/mouallem/SHiELD_INPUT_DATA/"
 endif
 
 
@@ -89,8 +89,8 @@ set FIELD_TABLE = ${RUN_DIR}/tables/field_table_6species_atmland # will be chang
 set npx = "769"
 set npy = "769"
 set npz = "91"
-set layout_x = "40"
-set layout_y = "40"
+set layout_x = "12"
+set layout_y = "12"
 set io_layout = "1,1"
 set nthreads = "1"
 
@@ -195,6 +195,10 @@ endif
 @ skip = ${nthreads} / ${div}
 set run_cmd = "srun --ntasks=$npes --cpus-per-task=$skip ./$executable:t"
 
+if (${SLURM_CLUSTER_NAME} == "stellar") then
+   set run_cmd = "srun --label --ntasks=$npes --export=ALL --cpus-per-task=$skip --cpu-bind=cores ./$executable:t"
+endif
+
 setenv SLURM_CPU_BIND verbose
 
 setenv MPICH_ENV_DISPLAY
@@ -297,7 +301,7 @@ cp INPUT/solarconstant_noaa_an.txt .
 ###########################################################################
 ###########################################################################
 
-  set MOM_INPUT_DIR = "/gpfs/f6/bil-coastal-gfdl/proj-shared/Joseph.Mouallem/shiemom_pdata/GLOBAL/om5-config/OM5/"
+  set MOM_INPUT_DIR = "$Coupled_mosaic/../om5-config/OM5/"
   cp $MOM_INPUT_DIR/MOM_* .
   cp $MOM_INPUT_DIR/SIS_* .
 
