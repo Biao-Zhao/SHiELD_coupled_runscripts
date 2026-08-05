@@ -1,11 +1,10 @@
 #!/bin/tcsh
 #SBATCH --output=./stdout/%x.%j
 #SBATCH --job-name=Ortho_IND
-#SBATCH --clusters=c5
+#SBATCH --clusters=stellar
 #SBATCH --time=02:30:00
-#SBATCH --nodes=30
-#SBATCH --account=gfdl_w
-#SBATCH --qos=urgent
+#SBATCH --ntasks=1600
+#SBATCH --account=cimes2
 
 # Script to run Regional SHiELD+MOM6 over the Indian ocean region
 # Adapted from the NWA config
@@ -32,7 +31,7 @@ endif
 if (${SLURM_CLUSTER_NAME} == "stellar") then
 set BASE_DIR    = "/scratch/cimes/mouallem/shiemom_runs/test/"
 set BUILD_DIR = "~${USER}/for_jinbo/SHiELD_build/"
-set INPUT_DATA = "/scratch/cimes/mouallem/from_gaea/Coupled_SHiELD/INPUT/"
+set INPUT_DATA = "/scratch/cimes/mouallem/SHiELD_INPUT_DATA/Coupled_SHiELD/INPUT/"
 endif
 
 unset echo
@@ -80,8 +79,8 @@ set GRID = /gpfs/f5/gfdl_w/scratch/Joseph.Mouallem/Coupled_SHiELD/INPUT/Regional
 endif
 
 if (${SLURM_CLUSTER_NAME} == "stellar") then
-  set ICS = /scratch/cimes/mouallem/from_gaea/Coupled_SHiELD/INPUT/Regional_validation/IND12/IC/C${res}/${NAME}_IC/
-  set GRID = /scratch/cimes/mouallem/from_gaea/Coupled_SHiELD/INPUT/Regional_validation/IND12/GRID/C${res}/C${res}/
+  set ICS = ${INPUT_DATA}/Regional_validation/IND12/IC/C${res}/${NAME}_IC/
+  set GRID = ${INPUT_DATA}/Regional_validation/IND12/GRID/C${res}/C${res}/
 endif
 
 # sending file to gfdl
@@ -325,7 +324,7 @@ ln -sf $FIX/global_mxsnoalb.uariz.t1534.3072.1536.rg.grb INPUT/
 cp ${RUN_DIR}/MOMSIS_INPUTFILES/MOM_input .
 cp ${RUN_DIR}/MOMSIS_INPUTFILES/SIS_input .
 ############### copy ocean and mosaic files
-ln -sf ${GRID}/ocean_and_mosaic_highres/* INPUT/
+ln -sf ${GRID}/ocean_and_mosaic_highres_dy_corrected/* INPUT/
 if (${res} == 384) then
 ln -sf ${GRID}/ocean_and_mosaic/* INPUT/
 endif
