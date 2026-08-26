@@ -32,6 +32,7 @@ set BUILD_DIR = "~${USER}/for_jinbo/SHiELD_build/"
 set INPUT_DATA = "/scratch/cimes/mouallem/SHiELD_INPUT_DATA/"
 endif
 
+set ocean_ice_IC = ".F."
 
 unset echo
 source ${BUILD_DIR}/site/environment.intel.csh
@@ -321,15 +322,17 @@ cp INPUT/solarconstant_noaa_an.txt .
   ln -sf $MOM_INPUT_DIR/INPUT/diag_rho2.nc INPUT/
   ln -sf $MOM_INPUT_DIR/INPUT/geothermal_davies2013_v1.nc INPUT/
 
-# glorys
-########
+set input_filename = 'n' # for mom6/sis2
+
+#MOM6 and SIS2 ICS
+
+if ( ${ocean_ice_IC} == ".T." ) then
 
 ln -sf $Coupled_ocean_ic/glorys_ic_OM4_025_fill_at_the_end.nc INPUT/
 ln -sf $Coupled_ocean_ic/Glorys_lat_extended/glo12_rg_6h-i_20240926-00h_3D-so_lat_extended_filled.nc INPUT/glo12_rg_6h-i_20240926-00h_3D-so_hcst_R20241009.nc
 ln -sf $Coupled_ocean_ic/Glorys_lat_extended/glo12_rg_6h-i_20240926-00h_3D-thetao_lat_extended_filled.nc INPUT/glo12_rg_6h-i_20240926-00h_3D-thetao_hcst_R20241009.nc
 ln -sf $Coupled_ocean_ic/Glorys_lat_extended/SIS2_IC_20260201_C768.nc INPUT/SIS2_IC_20260201_C768.nc
 
-set input_filename = 'n' # for mom6/sis2
 
 cat >! MOM_override <<EOF
 #override DT=${dt_atmos}
@@ -361,6 +364,21 @@ ICE_CONCENTRATION_IC_VAR = "aice"
 ICE_THICKNESS_FILE = "SIS2_IC_20260201_C768.nc"
 ICE_THICKNESS_IC_VAR = "hm"
 EOF
+
+
+
+else # quiscent ocean
+
+cat >! MOM_override <<EOF
+#override DT=${dt_atmos}
+#override DT_THERM=${dt_therm}
+EOF
+
+cat >! SIS_override <<EOF
+EOF
+
+endif #ocean_ice_IC
+
 
 
 cat >! input.nml <<EOF

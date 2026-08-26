@@ -32,6 +32,7 @@ set BUILD_DIR = "~${USER}/for_jinbo/SHiELD_build/"
 set INPUT_DATA = "/scratch/cimes/mouallem/SHiELD_INPUT_DATA/"
 endif
 
+set ocean_ice_IC = ".T."
 
 unset echo
 source ${BUILD_DIR}/site/environment.intel.csh
@@ -51,11 +52,11 @@ set MODE = "64bit"      # choices:  32bit, 64bit
 set CASE = "C${res}"
 set MONO = "non-mono"
 set NAME = "20160801.00Z"
+set NAME = "20250101.00Z"
 set MEMO = "$SLURM_JOB_NAME.res$res"
 set MEMO = "res$res.ocean_OM5"
 set PBL  = "TKE"        # choices:  TKE or YSU
 set HYPT = "off"         # choices:  on, off  (controls hyperthreading)
-set COMP = "debug"       # choices:  debug, repro, prod
 set NO_SEND = "no_send"  # choices:  send, no_send
 set EXE = "x"
 set HYPT = "off"         # choices:  on, off  (controls hyperthreading)
@@ -70,6 +71,7 @@ set WORKDIR    = ${BASE_DIR}/${RELEASE}/${NAME}.${CASE}.${TYPE}.${MODE}.${COMPIL
 set executable = ${BUILD_DIR}/Build/bin/SHiEMOM_${TYPE}.${COMP}.${MODE}.${COMPILER}.${EXE}
 
 set ICDIR   = ${INPUT_DATA}/global.v201810/${CASE}/${NAME}_IC/
+set ICDIR   = ${INPUT_DATA}/global.v201810/${CASE}_test/IC/${CASE}/${NAME}_IC/
 set ICS  = ${ICDIR}/GFS_INPUT.tar
 set FIX  = ${INPUT_DATA}/fix.v201810/
 set GFS  = ${INPUT_DATA}/GFS_STD_INPUT.20160311.tar
@@ -89,8 +91,8 @@ set FIELD_TABLE = ${RUN_DIR}/tables/field_table_6species_atmland # will be chang
 set npx = "769"
 set npy = "769"
 set npz = "91"
-set layout_x = "12"
-set layout_y = "12"
+set layout_x = "30"
+set layout_y = "30"
 set io_layout = "1,1"
 set nthreads = "1"
 
@@ -321,6 +323,44 @@ cp INPUT/solarconstant_noaa_an.txt .
 
 set input_filename = 'n' # for mom6/sis2
 
+#MOM6 and SIS2 ICS
+####################
+
+if ( ${ocean_ice_IC} == ".T." ) then
+
+ln -sf /gpfs/f6/bil-coastal-gfdl/scratch/Joseph.Mouallem/MOM_ICs_OBCs/temp/ICs/OM5/NK75/* INPUT/
+
+cat >! MOM_override <<EOF
+#override DT=${dt_atmos}
+#override DT_THERM=${dt_therm}
+#override INIT_LAYERS_FROM_Z_FILE = True
+#override TEMP_SALT_Z_INIT_FILE = ""      ! default = "temp_salt_z.nc"
+#override TEMP_Z_INIT_FILE = "MOM6_IC_${y}${m}${d}${h}_OM5.nc" 
+#override SALT_Z_INIT_FILE = "MOM6_IC_${y}${m}${d}${h}_OM5.nc"
+#override Z_INIT_FILE_PTEMP_VAR = "temp" ! default = "temp"
+#override Z_INIT_FILE_SALT_VAR = "salt"   ! default = "salt"
+#override Z_INIT_ALE_REMAPPING = True     !   [Boolean] default = False
+#override Z_INIT_REMAP_GENERAL = True     !   [Boolean] default = False
+#override Z_INIT_REMAP_OLD_ALG = False    !   [Boolean] default = True
+#override Z_INIT_REMAP_FULL_COLUMN = True
+#override DEPRESS_INITIAL_SURFACE = True
+#override SURFACE_HEIGHT_IC_FILE = "MOM6_IC_${y}${m}${d}${h}_OM5.nc"
+#override SURFACE_HEIGHT_IC_VAR = "ssh"
+#override VELOCITY_CONFIG = "file"
+#override VELOCITY_FILE = "MOM6_IC_${y}${m}${d}${h}_OM5_geocurrents.nc" ! barotropic adjusted currents
+EOF
+
+cat >! SIS_override <<EOF
+CONCENTRATION_INIT_CONFIG = "file"
+ICE_THICKNESS_INIT_CONFIG = "file"
+ICE_CONCENTRATION_FILE = "SIS2_IC_${y}${m}${d}_OM5.nc"
+ICE_CONCENTRATION_IC_VAR = "aice"
+ICE_THICKNESS_FILE = "SIS2_IC_${y}${m}${d}_OM5.nc"
+ICE_THICKNESS_IC_VAR = "hm"
+EOF
+
+else # quiescent ocean
+
 cat >! MOM_override <<EOF
 #override DT=${dt_atmos}
 #override DT_THERM=${dt_therm}
@@ -329,6 +369,7 @@ EOF
 cat >! SIS_override <<EOF
 EOF
 
+endif #ocean_ice_IC
 
 cat >! input.nml <<EOF
 
