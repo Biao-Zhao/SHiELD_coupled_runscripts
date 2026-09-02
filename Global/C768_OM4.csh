@@ -297,6 +297,9 @@ cp INPUT/co2historicaldata_*.txt .
 cp INPUT/sfc_emissivity_idx.txt .
 cp INPUT/solarconstant_noaa_an.txt .
 
+# add this for aerosol
+cp -pL ${INPUT_DATA}/MERRA2_2015_2023_new/${CASE}/*.nc INPUT/
+
 ###########################################################################
 ###########################################################################
 ############################ ADD MOM6 input files
