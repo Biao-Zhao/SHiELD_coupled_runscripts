@@ -297,6 +297,8 @@ cp INPUT/co2historicaldata_*.txt .
 cp INPUT/sfc_emissivity_idx.txt .
 cp INPUT/solarconstant_noaa_an.txt .
 
+# add this for aerosol
+cp -pL ${INPUT_DATA}/MERRA2_2015_2023_new/${CASE}/*.nc INPUT/
 ###########################################################################
 ###########################################################################
 ############################ ADD MOM6 input files
@@ -539,6 +541,7 @@ cat >! input.nml <<EOF
  &integ_phys_nml
        do_inline_mp = .T.
        do_sat_adj = .F.
+       do_aerosol = .F. ! sef fault when reading MERRA files
 /
 
  &coupler_nml
@@ -603,18 +606,21 @@ cat >! input.nml <<EOF
        random_clds    = .false.
        trans_trac     = .true.
        cnvcld         = .false.
-       imfshalcnv     = 2
-       imfdeepcnv     = 2
-       cdmbgwd        = 3.5, 0.25
+       imfshalcnv     = 3
+       imfdeepcnv     = 3
+       limit_shal_conv = .true.
+       cdmbgwd        = 5.0, 0.25
        prslrd0        = 0.
        ivegsrc        = 1
        isot           = 1
        ysupbl         = .false.
+       satmedmf       = .true.
+       isatmedmf      = 0
        rlmx           = 500.0
        do_dk_hb19     = .false.
        xkzminv        = 0.0
-       xkzm_m         = 1.5
-       xkzm_h         = 1.5
+       xkzm_m         = 0.5
+       xkzm_h         = 0.5
        xkzm_ml        = 1.0
        xkzm_hl        = 1.0
        xkzm_mi        = 1.5
@@ -622,49 +628,62 @@ cat >! input.nml <<EOF
        cap_k0_land    = .false.
        cloud_gfdl     = .true.
        do_ocean       = .false.
-       satmedmf       = .true.
-       isatmedmf      = 0
        do_sat_adj     = .false.
        do_z0_hwrf17_hwonly = .true.
+       dxcrtas        = 1.e3
+       c0s_deep       = 0.002
+       c1_deep        = 0.002
+       c0s_shal       = 0.002
+       c1_shal        = 0.002
+       scale_awareness_factor = 2.0
 /
 
 
  &gfdl_mp_nml
        do_sedi_heat = .false.
-       !rad_snow = .true.
-       !rad_graupel = .true.
-       !rad_rain = .true.
-       !const_vi = .false.
-       !const_vs = .false.
-       !const_vg = .false.
-       !const_vr = .false.
-       !vi_fac = 1.
-       !vs_fac = 1.
-       !vg_fac = 1.
-       !vr_fac = 1.
        vi_max = 1.
        vs_max = 2.
        vg_max = 12.
        vr_max = 12.
-       qi_lim = 1.
        prog_ccn = .true.
-       do_qa = .true.
+       prog_cin = .true.
        tau_l2v = 225.
-       tau_v2l = 150.
-       rthresh = 8.e-6  ! This is a key parameter for cloud water
-       dw_land  = 0.16
+       dw_land = 0.16
        dw_ocean = 0.10
        ql_mlt = 1.0e-3
-       qi0_crt = 8.0E-5
-       !qs0_crt = 1.0e-3
-       !tau_i2s = 1000.
-       c_psaci = 0.35
-       !c_pgacs = 0.01
+       qi0_crt = 8.0e-5
        rh_inc = 0.30
        rh_inr = 0.30
-       !ccn_l = 300.
-       !ccn_o = 100.
        c_paut = 0.5
+       rthresh = 8.0e-6
+       c_pracw = 0.35
+       c_psacw = 1.0
+       c_pgacw = 1.e-4
+       c_praci = 1.0
+       c_psaci = 0.35
+       c_pgaci = 0.05
+       do_cld_adj = .true.
+       use_rhc_revap = .true.
+       f_dq_p = 3.0
+       rewmax = 10.0
+       rermin = 10.0
+       vdiffflag = 2
+       do_new_acc_water = .true.
+       do_psd_water_fall = .true.
+       n0w_sig = 1.2
+       n0w_exp = 66
+       muw = 11.0
+       alinw = 3.e7
+       blinw = 2.0
+       rewflag = 4
+       do_new_acc_ice = .true.
+       do_psd_ice_fall = .true.
+       n0i_sig = 1.0
+       n0i_exp = 10
+       mui = 1.0
+       alini = 11.72
+       blini = 0.41
+       reiflag = 7
 /
 
 
