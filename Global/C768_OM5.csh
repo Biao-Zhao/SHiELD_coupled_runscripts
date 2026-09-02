@@ -298,7 +298,7 @@ cp INPUT/sfc_emissivity_idx.txt .
 cp INPUT/solarconstant_noaa_an.txt .
 
 # add this for aerosol
-cp -pL ${INPUT_DATA}/MERRA2_2015_2023_new/${CASE}/*.nc INPUT/
+#cp -pL ${INPUT_DATA}/MERRA2_2015_2023_new/${CASE}/*.nc INPUT/
 ###########################################################################
 ###########################################################################
 ############################ ADD MOM6 input files
@@ -330,26 +330,30 @@ set input_filename = 'n' # for mom6/sis2
 
 if ( ${ocean_ice_IC} == ".T." ) then
 
-ln -sf /gpfs/f6/bil-coastal-gfdl/scratch/Joseph.Mouallem/MOM_ICs_OBCs/temp/ICs/OM5/NK75/* INPUT/
+ln -sf /gpfs/f6/bil-coastal-gfdl/scratch/Joseph.Mouallem/MOM_ICs_OBCs/temp/ICs/OM5/NK75/MOM6_IC_${y}${m}${d}${h}_OM5.nc INPUT/
+ln -sf /gpfs/f6/bil-coastal-gfdl/scratch/Joseph.Mouallem/MOM_ICs_OBCs/temp/ICs/OM5/NK75/SIS2_IC_${y}${m}${d}_OM5.nc INPUT/
 
 cat >! MOM_override <<EOF
 #override DT=${dt_atmos}
 #override DT_THERM=${dt_therm}
+#override ALE_COORDINATE_CONFIG = "HYBRID:hycom1_75_800m.nc,sigma2,dz"
 #override INIT_LAYERS_FROM_Z_FILE = True
-#override TEMP_SALT_Z_INIT_FILE = ""      ! default = "temp_salt_z.nc"
 #override TEMP_Z_INIT_FILE = "MOM6_IC_${y}${m}${d}${h}_OM5.nc" 
 #override SALT_Z_INIT_FILE = "MOM6_IC_${y}${m}${d}${h}_OM5.nc"
 #override Z_INIT_FILE_PTEMP_VAR = "temp" ! default = "temp"
 #override Z_INIT_FILE_SALT_VAR = "salt"   ! default = "salt"
 #override Z_INIT_ALE_REMAPPING = True     !   [Boolean] default = False
-#override Z_INIT_REMAP_GENERAL = True     !   [Boolean] default = False
+#override Z_INIT_REMAP_GENERAL = False     !   [Boolean] default = False
 #override Z_INIT_REMAP_OLD_ALG = False    !   [Boolean] default = True
 #override Z_INIT_REMAP_FULL_COLUMN = True
+#override TEMP_SALT_INIT_VERTICAL_REMAP_ONLY = True
+#override REMAP_UV_USING_OLD_ALG = False
+#override REMAP_AFTER_INITIALIZATION = True
 #override DEPRESS_INITIAL_SURFACE = True
 #override SURFACE_HEIGHT_IC_FILE = "MOM6_IC_${y}${m}${d}${h}_OM5.nc"
 #override SURFACE_HEIGHT_IC_VAR = "ssh"
 #override VELOCITY_CONFIG = "file"
-#override VELOCITY_FILE = "MOM6_IC_${y}${m}${d}${h}_OM5_geocurrents.nc" ! barotropic adjusted currents
+#override VELOCITY_FILE = "MOM6_IC_${y}${m}${d}${h}_OM5.nc" ! barotropic adjusted currents
 EOF
 
 cat >! SIS_override <<EOF
