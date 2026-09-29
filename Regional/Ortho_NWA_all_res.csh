@@ -151,11 +151,11 @@ case "3200":
    set layout_y = "100"
    breaksw
 case "9600":
-   set npx = "2391"
-   set npy = "2291"
+   set npx = "4609"
+   set npy = "3073"
    set k_split = "8"
    set n_split = "10"
-   set dt_atmos = "180"
+   set dt_atmos = "90"
    set layout_x = "120"
    set layout_y = "120"
 endsw
